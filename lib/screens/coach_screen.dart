@@ -57,6 +57,9 @@ IMPORTANT RULES:
 10. You can help with budgeting, affordability, spending habits, and saving.
 11. Do not provide professional investment, tax, loan, or financial advice.
 12. Talk naturally like a helpful personal money coach.
+13. When asked about a month, use the actual transaction dates to determine the correct month.
+14. When asked about categories, calculate totals from the provided transactions.
+15. When comparing months, calculate each month's total using only transactions from that month.
 
 The user may ask follow-up questions. Remember the conversation context and answer naturally.
         ''',
@@ -91,28 +94,88 @@ The user may ask follow-up questions. Remember the conversation context and answ
     _scrollToBottom();
 
     try {
+      // Load the latest budget and transactions from Firestore.
+      await expenseStore.loadData();
+
       final budget = expenseStore.monthlyBudget;
-      final spent = expenseStore.totalSpent;
-      final remaining = expenseStore.remainingBudget;
+
+      // Get ALL transactions, including previous months.
+      final transactions = [...expenseStore.expenses];
+
+      // Sort newest first.
+      transactions.sort(
+        (a, b) => b.date.compareTo(a.date),
+      );
+
+      final now = DateTime.now();
+
+      // Calculate current month's expenses only.
+      final currentMonthExpenses = transactions.where((expense) {
+        return expense.date.year == now.year &&
+            expense.date.month == now.month;
+      }).toList();
+
+      final currentMonthSpent = currentMonthExpenses.fold<double>(
+        0,
+        (sum, expense) => sum + expense.amount,
+      );
+
+      final remaining = budget - currentMonthSpent;
+
+      // Prepare complete transaction history for Gemini.
+      final transactionHistory = transactions.isEmpty
+          ? 'No transactions have been recorded yet.'
+          : transactions.map((expense) {
+              final date =
+                  '${expense.date.day.toString().padLeft(2, '0')}/'
+                  '${expense.date.month.toString().padLeft(2, '0')}/'
+                  '${expense.date.year}';
+
+              return '- $date | '
+                  '${expense.category} | '
+                  '${expense.description} | '
+                  '₹${expense.amount.toStringAsFixed(0)}';
+            }).join('\n');
 
       final prompt = '''
-Current SpendWise financial data:
+CURRENT SPENDWISE FINANCIAL DATA
 
-Monthly budget: ₹${budget.toStringAsFixed(0)}
-Total spent this month: ₹${spent.toStringAsFixed(0)}
-Remaining budget: ₹${remaining.toStringAsFixed(0)}
+Current date:
+${now.day}/${now.month}/${now.year}
 
-User's message:
+Monthly budget:
+₹${budget.toStringAsFixed(0)}
+
+Current month spending:
+₹${currentMonthSpent.toStringAsFixed(0)}
+
+Current month remaining budget:
+₹${remaining.toStringAsFixed(0)}
+
+ALL RECORDED TRANSACTIONS:
+$transactionHistory
+
+USER'S MESSAGE:
 "$userMessage"
 
-Answer the user's message using the financial data above.
+ANSWER THE USER USING ONLY THE DATA ABOVE.
 
-Remember:
-- Do not invent financial information.
-- Use the actual numbers provided.
-- If the user asks how much they can spend this month, use the remaining budget.
-- If the user asks whether they can afford something, calculate it using the remaining budget.
-- Keep the answer concise and natural.
+IMPORTANT:
+
+- The transaction list contains transactions from multiple months.
+- Use the transaction DATE to determine which month an expense belongs to.
+- If the user says "last month", calculate the calendar month immediately before the current month.
+- If the user asks about a specific month, use only transactions from that month.
+- If the user asks "where am I spending too much?", group transactions by category and calculate category totals.
+- If the user asks "what do I spend most on?", compare category totals.
+- If the user asks for a month-to-month comparison, calculate each month's total separately.
+- If the user asks about the current month, use only transactions from the current month.
+- Never count an expense from another month as part of the current month.
+- Never invent missing transactions or financial information.
+- If there are no transactions for the requested period, clearly say so.
+- Perform all calculations accurately.
+- Always use Indian Rupees (₹).
+- Keep the response concise, natural, and helpful.
 ''';
 
       final result = await _chat.sendMessage(
@@ -216,7 +279,9 @@ Remember:
                       color: Color(0xFF172033),
                     ),
                   ),
+
                   const SizedBox(height: 8),
+
                   const Text(
                     'Ask questions about your spending and budget.',
                     style: TextStyle(
@@ -359,9 +424,9 @@ Remember:
             horizontal: 16,
             vertical: 13,
           ),
-          decoration: BoxDecoration(
-            color: const Color(0xFF7C3AED),
-            borderRadius: const BorderRadius.only(
+          decoration: const BoxDecoration(
+            color: Color(0xFF7C3AED),
+            borderRadius: BorderRadius.only(
               topLeft: Radius.circular(18),
               topRight: Radius.circular(18),
               bottomLeft: Radius.circular(18),
@@ -416,7 +481,9 @@ Remember:
                 color: Color(0xFF7C3AED),
               ),
             ),
+
             const SizedBox(width: 10),
+
             Expanded(
               child: Text(
                 message.text,
@@ -469,7 +536,9 @@ Remember:
                 color: Color(0xFF7C3AED),
               ),
             ),
+
             const SizedBox(width: 10),
+
             const SizedBox(
               height: 18,
               width: 18,
