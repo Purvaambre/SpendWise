@@ -13,6 +13,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final amountController = TextEditingController();
   final descriptionController = TextEditingController();
 
+  DateTime selectedDate = DateTime.now();
+
   String selectedCategory = 'Food';
 
   final categories = [
@@ -60,7 +62,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       amount: amount,
       description: description,
       category: selectedCategory,
-      date: DateTime.now(),
+      date: selectedDate,
     );
 
     try {
@@ -198,6 +200,80 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               },
             ),
 
+            const SizedBox(height: 24),
+
+            const Text(
+              'Date',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () async {
+                final pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: selectedDate,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime.now(),
+                );
+
+                if (pickedDate != null) {
+                  setState(() {
+                    selectedDate = DateTime(
+                      pickedDate.year,
+                      pickedDate.month,
+                      pickedDate.day,
+                      selectedDate.hour,
+                      selectedDate.minute,
+                    );
+                  });
+                }
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 17,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      color: Color(0xFF7C3AED),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: Text(
+                        '${selectedDate.day} '
+                        '${_monthName(selectedDate.month)} '
+                        '${selectedDate.year}',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF172033),
+                        ),
+                      ),
+                    ),
+
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Colors.grey,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             const SizedBox(height: 35),
 
             SizedBox(
@@ -225,5 +301,24 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         ),
       ),
     );
+  }
+
+  String _monthName(int month) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    return months[month - 1];
   }
 }
