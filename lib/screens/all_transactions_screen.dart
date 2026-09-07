@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/expense_store.dart';
+import '../utils/responsive.dart';
 import '../widgets/transaction_actions_sheet.dart';
 
 class AllTransactionsScreen extends StatefulWidget {
@@ -166,7 +167,10 @@ class _AllTransactionsScreenState
                     ),
                   )
                 : ListView(
-                    padding: const EdgeInsets.all(20),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.horizontalPadding(context),
+                      vertical: 16,
+                    ),
                     children: [
                       for (final entry
                           in groupedExpenses.entries) ...[

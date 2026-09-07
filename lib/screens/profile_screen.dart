@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'budget_setup_screen.dart';
 import 'login_screen.dart';
+import '../utils/responsive.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -10,10 +11,26 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final userName = user?.displayName?.trim().isNotEmpty == true
+        ? user!.displayName!.trim()
+        : 'SpendWise User';
+
+    String initials = 'SU';
+
+    if (userName != 'SpendWise User') {
+      final parts = userName
+          .split(' ')
+          .where((part) => part.isNotEmpty)
+          .toList();
+
+      if (parts.length >= 2) {
+        initials = '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+      } else if (parts.isNotEmpty) {
+        initials = parts.first.substring(0, 1).toUpperCase();
+      }
+    }
 
     final String email = user?.email ?? 'No email';
-    final String initial =
-        email.isNotEmpty ? email[0].toUpperCase() : 'U';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FC),
@@ -30,7 +47,12 @@ class ProfileScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 30),
+          padding: EdgeInsets.fromLTRB(
+            Responsive.horizontalPadding(context),
+            8,
+            Responsive.horizontalPadding(context),
+            30,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -55,11 +77,11 @@ class ProfileScreen extends StatelessWidget {
                       radius: 32,
                       backgroundColor: const Color(0xFFE9DDFF),
                       child: Text(
-                        initial,
+                        initials,
                         style: const TextStyle(
-                          color: Color(0xFF7C3AED),
-                          fontSize: 26,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
+                          color: Color(0xFF7C3AED),
                         ),
                       ),
                     ),
@@ -69,9 +91,9 @@ class ProfileScreen extends StatelessWidget {
                         crossAxisAlignment:
                             CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'SpendWise User',
-                            style: TextStyle(
+                          Text(
+                            userName,
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -316,6 +338,8 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     Text(
                       title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -324,6 +348,8 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
@@ -377,7 +403,10 @@ class _NotificationPreferencesScreenState
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.horizontalPadding(context),
+          vertical: 20,
+        ),
         children: [
           const Text(
             'Stay informed',
@@ -481,6 +510,8 @@ class _NotificationPreferencesScreenState
               children: [
                 Text(
                   title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
@@ -489,6 +520,8 @@ class _NotificationPreferencesScreenState
                 const SizedBox(height: 5),
                 Text(
                   subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Colors.grey,
                     fontSize: 12,
@@ -530,7 +563,10 @@ class PrivacySecurityScreen extends StatelessWidget {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.horizontalPadding(context),
+          vertical: 20,
+        ),
         children: [
           const Text(
             'Your privacy matters',
@@ -706,7 +742,10 @@ class _HelpSupportScreenState
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.horizontalPadding(context),
+          vertical: 20,
+        ),
         children: [
           const Text(
             'How can we help?',

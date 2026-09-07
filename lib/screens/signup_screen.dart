@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
+import '../utils/responsive.dart';
 import 'budget_setup_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -12,6 +13,7 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
@@ -23,11 +25,12 @@ class _SignupScreenState extends State<SignupScreen> {
   bool obscureConfirmPassword = true;
 
   Future<void> signup() async {
+    final name = nameController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text;
     final confirmPassword = confirmPasswordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
       showMessage('Please fill all fields');
       return;
     }
@@ -45,7 +48,11 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => loading = true);
 
     try {
-      await authService.signUp(email, password);
+      await authService.signUp(
+        name,
+        email,
+        password,
+      );
 
       if (!mounted) return;
 
@@ -76,6 +83,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void dispose() {
+    nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
@@ -93,36 +101,44 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 8),
-
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF7C3AED),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Icon(
-                  Icons.person_add_alt_1_rounded,
-                  color: Colors.white,
-                  size: 32,
-                ),
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.horizontalPadding(context),
+            vertical: 24,
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: Responsive.contentMaxWidth(context),
               ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: Responsive.isSmallPhone(context) ? 8 : 24),
 
-              const SizedBox(height: 24),
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF7C3AED),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(
+                      Icons.person_add_alt_1_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
 
-              const Text(
-                'Create your account',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF172033),
-                ),
-              ),
+                  const SizedBox(height: 24),
+
+                  Text(
+                    'Create your account',
+                    style: TextStyle(
+                      fontSize: Responsive.isSmallPhone(context) ? 24 : 28,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF172033),
+                    ),
+                  ),
 
               const SizedBox(height: 8),
 
@@ -135,6 +151,34 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
 
               const SizedBox(height: 32),
+
+              const Text(
+                'Name',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF172033),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: nameController,
+                keyboardType: TextInputType.name,
+                textCapitalization: TextCapitalization.words,
+                decoration: InputDecoration(
+                  hintText: 'Enter your name',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 18),
 
               const Text(
                 'Email',
@@ -276,8 +320,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: Responsive.isSmallPhone(context) ? 24 : 48),
             ],
+              ),
+            ),
           ),
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/expense_store.dart';
 import '../models/expense.dart';
+import '../utils/responsive.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen({super.key});
@@ -102,9 +103,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         ),
       ),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.horizontalPadding(context),
+            vertical: 20,
+          ),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
@@ -300,7 +305,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   String _monthName(int month) {

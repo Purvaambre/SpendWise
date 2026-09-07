@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../data/expense_store.dart';
+import '../data/notification_store.dart';
+import '../models/app_notification.dart';
+import '../utils/responsive.dart';
 
 enum AlertLevel { info, warning, danger }
 
@@ -209,7 +212,10 @@ class AlertsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: expenseStore,
+      animation: Listenable.merge([
+        expenseStore,
+        notificationStore,
+      ]),
       builder: (context, _) {
         final alerts = _buildAlerts();
 
@@ -228,7 +234,10 @@ class AlertsScreen extends StatelessWidget {
           ),
           body: SafeArea(
             child: ListView(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.horizontalPadding(context),
+                vertical: 20,
+              ),
               children: [
                 const Text(
                   'Stay on top of your spending',
@@ -252,6 +261,10 @@ class AlertsScreen extends StatelessWidget {
                 const SizedBox(height: 22),
 
                 ...alerts.map((alert) => _alertCard(alert)),
+
+                ...notificationStore.notifications.map(
+                  (notification) => _notificationCard(notification),
+                ),
               ],
             ),
           ),
@@ -292,6 +305,8 @@ class AlertsScreen extends StatelessWidget {
               children: [
                 Text(
                   alert.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
@@ -311,6 +326,46 @@ class AlertsScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _notificationCard(AppNotification notification) {
+    IconData icon;
+    AlertLevel level;
+
+    switch (notification.type) {
+      case 'budget_exceeded':
+        icon = Icons.warning_rounded;
+        level = AlertLevel.danger;
+        break;
+
+      case 'budget_80':
+        icon = Icons.notifications_active_rounded;
+        level = AlertLevel.warning;
+        break;
+
+      case 'daily_reminder':
+        icon = Icons.edit_note_rounded;
+        level = AlertLevel.info;
+        break;
+
+      case 'ai_coach':
+        icon = Icons.auto_awesome_rounded;
+        level = AlertLevel.info;
+        break;
+
+      default:
+        icon = Icons.notifications_outlined;
+        level = AlertLevel.info;
+    }
+
+    return _alertCard(
+      SmartAlert(
+        icon: icon,
+        title: notification.title,
+        message: notification.message,
+        level: level,
       ),
     );
   }

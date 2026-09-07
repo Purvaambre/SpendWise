@@ -3,6 +3,8 @@ import '../data/expense_store.dart';
 import 'add_expense_screen.dart';
 import 'all_transactions_screen.dart';
 import '../widgets/transaction_actions_sheet.dart';
+import 'monthly_analyzer_screen.dart';
+import '../utils/responsive.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -66,7 +68,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.horizontalPadding(context),
+                vertical: 20,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -268,6 +273,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   const SizedBox(height: 28),
 
+                  // Monthly Analyzer
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const MonthlyAnalyzerScreen(),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: const Color(0xFFE3E8F0),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE0F2FE),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.analytics_outlined,
+                              color: Color(0xFF0284C7),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '📊 Analyze Your Spending',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF172033),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'See how you spent your money last month',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Colors.grey,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
                   // Recent transactions
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -410,6 +484,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Text(
                     expense.description,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                     ),
@@ -417,6 +493,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 3),
                   Text(
                     expense.category,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Colors.grey,
                       fontSize: 12,

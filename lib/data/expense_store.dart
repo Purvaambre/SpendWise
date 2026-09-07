@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/expense.dart';
+import 'notification_store.dart';
 
 class ExpenseStore extends ChangeNotifier {
   final List<Expense> _expenses = [];
@@ -106,6 +107,9 @@ class ExpenseStore extends ChangeNotifier {
       }
 
       notifyListeners();
+
+      notificationStore.checkBudgetNotifications();
+      notificationStore.checkDailyReminder();
     } catch (e) {
       debugPrint('Error loading SpendWise data: $e');
     }
@@ -138,6 +142,8 @@ class ExpenseStore extends ChangeNotifier {
       _expenses.insert(0, savedExpense);
 
       notifyListeners();
+
+      notificationStore.checkBudgetNotifications();
     } catch (e) {
       debugPrint('Error saving expense: $e');
       rethrow;

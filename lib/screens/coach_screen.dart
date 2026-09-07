@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_ai/firebase_ai.dart';
 
 import '../data/expense_store.dart';
+import '../utils/responsive.dart';
 
 class CoachScreen extends StatefulWidget {
   const CoachScreen({super.key});
@@ -269,7 +270,12 @@ IMPORTANT:
             Expanded(
               child: ListView(
                 controller: scrollController,
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                padding: EdgeInsets.fromLTRB(
+                  Responsive.horizontalPadding(context), 
+                  8, 
+                  Responsive.horizontalPadding(context), 
+                  16,
+                ),
                 children: [
                   const Text(
                     'Your personal money coach ✨',
@@ -337,10 +343,10 @@ IMPORTANT:
 
             // Message input
             Container(
-              padding: const EdgeInsets.fromLTRB(
-                20,
+              padding: EdgeInsets.fromLTRB(
+                Responsive.horizontalPadding(context),
                 10,
-                20,
+                Responsive.horizontalPadding(context),
                 12,
               ),
               color: const Color(0xFFF7F9FC),

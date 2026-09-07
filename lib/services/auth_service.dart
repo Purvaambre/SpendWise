@@ -6,13 +6,22 @@ class AuthService {
   User? get currentUser => _auth.currentUser;
 
   Future<UserCredential> signUp(
+    String name,
     String email,
     String password,
   ) async {
-    return await _auth.createUserWithEmailAndPassword(
+    final credential = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
       password: password,
     );
+
+    // Save the user's name in Firebase Authentication.
+    await credential.user?.updateDisplayName(name.trim());
+
+    // Refresh the user so the new name is immediately available.
+    await credential.user?.reload();
+
+    return credential;
   }
 
   Future<UserCredential> login(

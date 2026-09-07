@@ -6,6 +6,7 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'firebase_options.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_navigation_screen.dart';
+import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,8 @@ Future<void> main() async {
   await FirebaseAppCheck.instance.activate(
     providerAndroid: const AndroidDebugProvider(),
   );
+
+  await NotificationService.initialize();
 
   // Keep the user signed in between app launches.
   runApp(const SpendWiseApp());

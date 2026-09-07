@@ -7,6 +7,7 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'transaction_parser.dart';
 import 'data/expense_store.dart';
 import 'models/expense.dart';
+import 'utils/responsive.dart';
 
 class OcrPage extends StatefulWidget {
   const OcrPage({super.key});
@@ -541,8 +542,11 @@ class _OcrPageState extends State<OcrPage> {
 
   Widget _buildSuccessScreen() {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.horizontalPadding(context),
+          vertical: 24,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -702,7 +706,10 @@ class _OcrPageState extends State<OcrPage> {
         child: transactionConfirmed
             ? _buildSuccessScreen()
             : SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.horizontalPadding(context),
+                  vertical: 24,
+                ),
 
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -775,11 +782,15 @@ class _OcrPageState extends State<OcrPage> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(20),
 
-                        child: Image.file(
-                          selectedImage!,
-                          width: double.infinity,
-                          height: 300,
-                          fit: BoxFit.contain,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: Responsive.width(context),
+                            maxHeight: 300,
+                          ),
+                          child: Image.file(
+                            selectedImage!,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
 
