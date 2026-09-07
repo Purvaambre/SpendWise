@@ -12,10 +12,18 @@ class ExpenseStore extends ChangeNotifier {
   List<Expense> get expenses => List.unmodifiable(_expenses);
 
   double get totalSpent {
-    return _expenses.fold(
-      0,
-      (sum, expense) => sum + expense.amount,
-    );
+    final now = DateTime.now();
+
+    return _expenses
+        .where(
+          (expense) =>
+              expense.date.year == now.year &&
+              expense.date.month == now.month,
+        )
+        .fold(
+          0,
+          (sum, expense) => sum + expense.amount,
+        );
   }
 
   double get monthlyBudget => _monthlyBudget;
@@ -27,11 +35,15 @@ class ExpenseStore extends ChangeNotifier {
   }
 
   Map<String, double> get categoryTotals {
+    final now = DateTime.now();
     final totals = <String, double>{};
 
     for (final expense in _expenses) {
-      totals[expense.category] =
-          (totals[expense.category] ?? 0) + expense.amount;
+      if (expense.date.year == now.year &&
+          expense.date.month == now.month) {
+        totals[expense.category] =
+            (totals[expense.category] ?? 0) + expense.amount;
+      }
     }
 
     return totals;
@@ -84,6 +96,7 @@ class ExpenseStore extends ChangeNotifier {
 
         _expenses.add(
           Expense(
+            id: doc.id,
             amount: (data['amount'] as num).toDouble(),
             description: data['description'] ?? '',
             category: data['category'] ?? 'Other',
@@ -107,14 +120,22 @@ class ExpenseStore extends ChangeNotifier {
     }
 
     try {
-      await collection.add({
+      final docRef = await collection.add({
         'amount': expense.amount,
         'description': expense.description,
         'category': expense.category,
         'date': Timestamp.fromDate(expense.date),
       });
 
-      _expenses.insert(0, expense);
+      final savedExpense = Expense(
+        id: docRef.id,
+        amount: expense.amount,
+        description: expense.description,
+        category: expense.category,
+        date: expense.date,
+      );
+
+      _expenses.insert(0, savedExpense);
 
       notifyListeners();
     } catch (e) {
@@ -123,9 +144,65 @@ class ExpenseStore extends ChangeNotifier {
     }
   }
 
-  void removeExpense(Expense expense) {
-    _expenses.remove(expense);
-    notifyListeners();
+  Future<void> removeExpense(Expense expense) async {
+    final collection = _expensesCollection;
+
+    if (collection == null) {
+      debugPrint('No logged-in user. Expense not deleted.');
+      return;
+    }
+
+    if (expense.id == null) {
+      debugPrint('Expense has no Firestore ID.');
+      return;
+    }
+
+    try {
+      await collection.doc(expense.id).delete();
+
+      _expenses.remove(expense);
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error deleting expense: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateExpense(Expense expense) async {
+    final collection = _expensesCollection;
+
+    if (collection == null) {
+      debugPrint('No logged-in user. Expense not updated.');
+      return;
+    }
+
+    if (expense.id == null) {
+      debugPrint('Expense has no Firestore ID.');
+      return;
+    }
+
+    try {
+      await collection.doc(expense.id).update({
+        'amount': expense.amount,
+        'description': expense.description,
+        'category': expense.category,
+        'date': Timestamp.fromDate(expense.date),
+      });
+
+      final index = _expenses.indexWhere(
+        (e) => e.id == expense.id,
+      );
+
+      if (index != -1) {
+        _expenses[index] = expense;
+      }
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error updating expense: $e');
+      rethrow;
+    }
   }
 }
 

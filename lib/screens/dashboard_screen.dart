@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../data/expense_store.dart';
 import 'add_expense_screen.dart';
+import 'all_transactions_screen.dart';
+import '../widgets/transaction_actions_sheet.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -280,7 +282,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
 
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AllTransactionsScreen(),
+                            ),
+                          );
+                        },
                         child: const Text('View all'),
                       ),
                     ],
@@ -291,7 +300,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   if (expenseStore.expenses.isEmpty)
                     _emptyTransactions()
                   else
-                    ...expenseStore.expenses.take(5).map(
+                    ...expenseStore.expenses.take(2).map(
                       (expense) => _transactionCard(expense),
                     ),
 
@@ -364,91 +373,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _transactionCard(dynamic expense) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3E8FF),
-              borderRadius: BorderRadius.circular(12),
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        TransactionActionsSheet.show(
+          context,
+          expense,
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3E8FF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.receipt_long_outlined,
+                color: Color(0xFF7C3AED),
+              ),
             ),
-            child: const Icon(
-              Icons.receipt_long_outlined,
-              color: Color(0xFF7C3AED),
-            ),
-          ),
 
-          const SizedBox(width: 12),
+            const SizedBox(width: 12),
 
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  expense.description,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  expense.category,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Text(
-            '₹${expense.amount.toStringAsFixed(0)}',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.delete_outline,
-              color: Colors.red,
-            ),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (dialogContext) => AlertDialog(
-                  title: const Text('Delete expense?'),
-                  content: Text(
-                    'Delete ₹${expense.amount.toStringAsFixed(0)}?',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      child: const Text('Cancel'),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    expense.description,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
                     ),
-                    TextButton(
-                      onPressed: () {
-                        expenseStore.removeExpense(expense);
-                        Navigator.pop(dialogContext);
-                      },
-                      child: const Text(
-                        'Delete',
-                        style: TextStyle(color: Colors.red),
-                      ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    expense.category,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
                     ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
+                  ),
+                ],
+              ),
+            ),
+
+            Text(
+              '₹${expense.amount.toStringAsFixed(0)}',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(width: 4),
+
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.grey,
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -487,4 +480,5 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
 }

@@ -28,6 +28,7 @@ class _OcrPageState extends State<OcrPage> {
   TransactionDetails? transactionDetails;
 
   bool transactionConfirmed = false;
+  String selectedCategory = 'Other';
 
   // ============================================================
   // PICK IMAGE
@@ -47,6 +48,7 @@ class _OcrPageState extends State<OcrPage> {
       extractedText = '';
       transactionDetails = null;
       transactionConfirmed = false;
+      selectedCategory = 'Other';
       isProcessing = true;
     });
 
@@ -273,6 +275,163 @@ class _OcrPageState extends State<OcrPage> {
   }
 
   // ============================================================
+  // EDIT CATEGORY
+  // ============================================================
+
+  void _editCategory() {
+    const categories = [
+      'Food & Dining',
+      'Shopping',
+      'Transport',
+      'Entertainment',
+      'Education',
+      'Bills & Utilities',
+      'Healthcare',
+      'Other',
+    ];
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        String tempCategory = selectedCategory;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(22),
+              ),
+              title: const Text(
+                'Select Category',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF17131F),
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: categories.map((category) {
+                  return RadioListTile<String>(
+                    value: category,
+                    groupValue: tempCategory,
+                    activeColor: const Color(0xFF6C3EF4),
+                    title: Text(category),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setDialogState(() {
+                          tempCategory = value;
+                        });
+                      }
+                    },
+                  );
+                }).toList(),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Color(0xFF77727F),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedCategory = tempCategory;
+                    });
+
+                    Navigator.pop(dialogContext);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6C3EF4),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Save Category',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  DateTime? _parseTransactionDate(String dateText) {
+    final text = dateText.trim();
+
+    // Try standard formats first, e.g. 2026-09-07
+    final standardDate = DateTime.tryParse(text);
+    if (standardDate != null) {
+      return standardDate;
+    }
+
+    // Handle formats like:
+    // 7 Sep 2026
+    // 07 Sep 2026
+    // 7 September 2026
+    final match = RegExp(
+      r'^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$',
+    ).firstMatch(text);
+
+    if (match != null) {
+      final day = int.tryParse(match.group(1)!);
+      final monthName = match.group(2)!.toLowerCase();
+      final year = int.tryParse(match.group(3)!);
+
+      const months = {
+        'jan': 1,
+        'january': 1,
+        'feb': 2,
+        'february': 2,
+        'mar': 3,
+        'march': 3,
+        'apr': 4,
+        'april': 4,
+        'may': 5,
+        'jun': 6,
+        'june': 6,
+        'jul': 7,
+        'july': 7,
+        'aug': 8,
+        'august': 8,
+        'sep': 9,
+        'sept': 9,
+        'september': 9,
+        'oct': 10,
+        'october': 10,
+        'nov': 11,
+        'november': 11,
+        'dec': 12,
+        'december': 12,
+      };
+
+      final month = months[monthName];
+
+      if (day != null && month != null && year != null) {
+        return DateTime(year, month, day);
+      }
+    }
+
+    return null;
+  }
+
+  // ============================================================
   // CONFIRM TRANSACTION
   // ============================================================
 
@@ -297,12 +456,26 @@ class _OcrPageState extends State<OcrPage> {
 
     final merchant = transactionDetails!.merchant.trim();
 
+    final transactionDate =
+        _parseTransactionDate(transactionDetails!.date);
+
+    if (transactionDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please enter a valid transaction date before saving.',
+          ),
+        ),
+      );
+      return;
+    }
+
     expenseStore.addExpense(
       Expense(
         amount: amount,
         description: merchant.isEmpty ? 'UPI Transaction' : merchant,
-        category: 'Other',
-        date: DateTime.now(),
+        category: selectedCategory,
+        date: transactionDate,
       ),
     );
 
@@ -321,6 +494,7 @@ class _OcrPageState extends State<OcrPage> {
       extractedText = '';
       transactionDetails = null;
       transactionConfirmed = false;
+      selectedCategory = 'Other';
       isProcessing = false;
     });
   }
@@ -765,6 +939,15 @@ class _OcrPageState extends State<OcrPage> {
                                 'Payment Method',
                                 transactionDetails!.paymentMethod,
                               ),
+
+                              const Divider(
+                                color: Color(0xFFEDE8F5),
+                              ),
+
+                              _detailRow(
+                                'Category',
+                                selectedCategory,
+                              ),
                             ],
                           ),
                         ),
@@ -798,6 +981,33 @@ class _OcrPageState extends State<OcrPage> {
 
                             child: const Text(
                               'Edit Details',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: OutlinedButton.icon(
+                            onPressed: _editCategory,
+                            icon: const Icon(Icons.category_outlined),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF6C3EF4),
+                              side: const BorderSide(
+                                color: Color(0xFF6C3EF4),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                            ),
+                            label: const Text(
+                              'Edit Category',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
